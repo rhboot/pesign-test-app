@@ -1,3 +1,5 @@
+VERSION = 0.1
+
 PREFIX := /
 DATADIR := /usr/share
 CC = gcc
@@ -22,5 +24,5 @@ clean :
 	@rm -vf *.o *.so *.efi
 
 install :
-	install -D -d -m 0755 $(PREFIX)/$(DATADIR)/pesign-test-app
-	install -m 0644 pesign-test-app.efi $(PREFIX)/$(DATADIR)/pesign-test-app/pesign-test-app.efi
+	install -D -d -m 0755 $(PREFIX)/$(DATADIR)/pesign-test-app-$(VERSION)
+	install -m 0644 pesign-test-app.efi $(PREFIX)/$(DATADIR)/pesign-test-app-$(VERSION)/pesign-test-app.efi
