@@ -5,13 +5,9 @@
 *.lib
 *.a
 
-# Shared objects (inc. Windows DLLs)
-*.dll
+# Shared objects
 *.so
 *.so.*
-*.dylib
 
 # Executables
-*.exe
-*.out
-*.app
+*.efi
