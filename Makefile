@@ -1,11 +1,11 @@
 VERSION = 0.2
 
-PREFIX := /
 DATADIR := /usr/share
+LIBDIR := /usr/lib64
 CC = gcc
 CFLAGS = -O2 -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -mno-red-zone -DCONFIG_x86_64 -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args --std=c99 -I/usr/include/efi -I/usr/include/efi/x86_64 -I/usr/include/efi/protocol
 LD = ld
-LDFLAGS = -nostdlib -T /usr/lib64/gnuefi/elf_x86_64_efi.lds -shared -Bsymbolic -L/usr/lib64 /usr/lib64/gnuefi/crt0-efi-x86_64.o
+LDFLAGS = -nostdlib -T $(LIBDIR)/gnuefi/elf_x86_64_efi.lds -shared -Bsymbolic -L$(LIBDIR) $(LIBDIR)/gnuefi/crt0-efi-x86_64.o
 OBJCOPY = objcopy
 
 all : pesign-test-app.efi
@@ -24,8 +24,8 @@ clean :
 	@rm -vf *.o *.so *.efi
 
 install :
-	install -D -d -m 0755 $(PREFIX)/$(DATADIR)/pesign-test-app-$(VERSION)
-	install -m 0644 pesign-test-app.efi $(PREFIX)/$(DATADIR)/pesign-test-app-$(VERSION)/pesign-test-app.efi
+	install -D -d -m 0755 $(INSTALLROOT)/$(DATADIR)/pesign-test-app-$(VERSION)
+	install -m 0644 pesign-test-app.efi $(INSTALLROOT)/$(DATADIR)/pesign-test-app-$(VERSION)/pesign-test-app.efi
 
 GITTAG = $(VERSION)
 
