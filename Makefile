@@ -26,3 +26,25 @@ clean :
 install :
 	install -D -d -m 0755 $(PREFIX)/$(DATADIR)/pesign-test-app-$(VERSION)
 	install -m 0644 pesign-test-app.efi $(PREFIX)/$(DATADIR)/pesign-test-app-$(VERSION)/pesign-test-app.efi
+
+GITTAG = $(VERSION)
+
+test-archive:
+	@rm -rf /tmp/pesign-$(VERSION) /tmp/pesign-$(VERSION)-tmp
+	@mkdir -p /tmp/pesign-$(VERSION)-tmp
+	@git archive --format=tar $(shell git branch | awk '/^*/ { print $$2 }') | ( cd /tmp/pesign-$(VERSION)-tmp/ ; tar x )
+	@git diff | ( cd /tmp/pesign-$(VERSION)-tmp/ ; patch -s -p1 -b -z .gitdiff )
+	@mv /tmp/pesign-$(VERSION)-tmp/ /tmp/pesign-$(VERSION)/
+	@dir=$$PWD; cd /tmp; tar -c --bzip2 -f $$dir/pesign-$(VERSION).tar.bz2 pesign-$(VERSION)
+	@rm -rf /tmp/pesign-$(VERSION)
+	@echo "The archive is in pesign-$(VERSION).tar.bz2"
+
+archive:
+	git tag $(GITTAG) refs/heads/master
+	@rm -rf /tmp/pesign-$(VERSION) /tmp/pesign-$(VERSION)-tmp
+	@mkdir -p /tmp/pesign-$(VERSION)-tmp
+	@git archive --format=tar $(GITTAG) | ( cd /tmp/pesign-$(VERSION)-tmp/ ; tar x )
+	@mv /tmp/pesign-$(VERSION)-tmp/ /tmp/pesign-$(VERSION)/
+	@dir=$$PWD; cd /tmp; tar -c --bzip2 -f $$dir/pesign-$(VERSION).tar.bz2 pesign-$(VERSION)
+	@rm -rf /tmp/pesign-$(VERSION)
+	@echo "The archive is in pesign-$(VERSION).tar.bz2"
