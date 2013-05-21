@@ -1,4 +1,7 @@
 pesign-test-app
 ===============
 
-An application entirely devoted to making sure the fedora pesign daemon and builders work.
+An application entirely devoted to making sure the fedora pesign daemon and
+builders work.
+
+If you're wondering "do I need this in my Linux distribution", then you do not.
