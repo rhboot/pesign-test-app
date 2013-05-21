@@ -1,4 +1,4 @@
-VERSION = 0.3
+VERSION = 0.4
 ARCH            = $(shell uname -m | sed s,i[3456789]86,ia32,)
 DATADIR := /usr/share
 LIBDIR := /usr/lib64
