@@ -1,18 +1,18 @@
 VERSION = 0.3
-
+ARCH            = $(shell uname -m | sed s,i[3456789]86,ia32,)
 DATADIR := /usr/share
 LIBDIR := /usr/lib64
 CC = gcc
-CFLAGS = -O2 -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -mno-red-zone -DCONFIG_x86_64 -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args --std=c99 -I/usr/include/efi -I/usr/include/efi/x86_64 -I/usr/include/efi/protocol
+CFLAGS = -O2 -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -mno-red-zone -DCONFIG_$(ARCH) -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args --std=c99 -I/usr/include/efi -I/usr/include/efi/$(ARCH) -I/usr/include/efi/protocol
 LD = ld
-LDFLAGS = -nostdlib -T $(LIBDIR)/gnuefi/elf_x86_64_efi.lds -shared -Bsymbolic -L$(LIBDIR) $(LIBDIR)/gnuefi/crt0-efi-x86_64.o
+LDFLAGS = -nostdlib -T $(LIBDIR)/gnuefi/elf_$(ARCH)_efi.lds -shared -Bsymbolic -L$(LIBDIR) $(LIBDIR)/gnuefi/crt0-efi-$(ARCH).o
 OBJCOPY = objcopy
 
 all : pesign-test-app.efi
 
 %.efi : %.so
 	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel \
-		   -j .rela -j .reloc --target=efi-app-x86_64 $^ $@
+		   -j .rela -j .reloc --target=efi-app-$(ARCH) $^ $@
 
 %.so : %.o
 	$(LD) $(LDFLAGS) -o $@ $^ -lefi -lgnuefi
