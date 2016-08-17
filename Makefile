@@ -2,23 +2,65 @@ VERSION = 0.4
 ARCH            = $(shell uname -m | sed s,i[3456789]86,ia32,)
 DATADIR := /usr/share
 LIBDIR := /usr/lib64
+GNUEFIDIR ?= $(LIBDIR)/gnuefi/
 CC = gcc
-CFLAGS = -O2 -fpic -Wall -fshort-wchar -fno-strict-aliasing -fno-merge-constants -mno-red-zone -DCONFIG_$(ARCH) -DGNU_EFI_USE_MS_ABI -maccumulate-outgoing-args --std=c99 -I/usr/include/efi -I/usr/include/efi/$(ARCH) -I/usr/include/efi/protocol
+CFLAGS ?= -O0 -g3
+BUILDFLAGS := $(CFLAGS) -fpic -Werror -Wall -Wextra -fshort-wchar \
+        -fno-merge-constants -ffreestanding \
+        -fno-stack-protector -fno-stack-check --std=gnu11 -DCONFIG_$(ARCH) \
+        -I/usr/include/efi/ -I/usr/include/efi/$(ARCH)/ \
+        -I/usr/include/efi/protocol
+CCLDFLAGS       ?= -nostdlib -Wl,--warn-common \
+        -Wl,--no-undefined -Wl,--fatal-warnings \
+        -Wl,-shared -Wl,-Bsymbolic -L$(LIBDIR) -L$(GNUEFIDIR) \
+        -Wl,--build-id=sha1 -Wl,--hash-style=sysv \
+        $(GNUEFIDIR)/crt0-efi-$(ARCH).o
 LD = ld
-LDFLAGS = -nostdlib -T $(LIBDIR)/gnuefi/elf_$(ARCH)_efi.lds -shared -Bsymbolic -L$(LIBDIR) $(LIBDIR)/gnuefi/crt0-efi-$(ARCH).o
 OBJCOPY = objcopy
+OBJCOPY_GTE224 = $(shell expr `$(OBJCOPY) --version |grep ^"GNU objcopy" | sed 's/^.* //g' | cut -f1-2 -d.` \>= 2.24)
+
+ifeq ($(ARCH),x86_64)
+	FORMAT = --target efi-app-$(ARCH)
+	BUILDFLAGS += -mno-mmx -mno-sse -mno-red-zone -nostdinc \
+		-maccumulate-outgoing-args -DEFI_FUNCTION_WRAPPER \
+		-DGNU_EFI_USE_MS_ABI -I$(shell $(CC) -print-file-name=include)
+endif
+ifeq ($(ARCH),ia32)
+	FORMAT = --target efi-app-$(ARCH)
+	BUILDFLAGS += -mno-mmx -mno-sse -mno-red-zone -nostdinc \
+		-maccumulate-outgoing-args -m32 \
+		-I$(shell $(CC) -print-file-name=include)
+endif
+
+ifeq ($(ARCH),aarch64)
+	FORMAT = -O binary
+	CCLDFLAGS += -Wl,--defsym=EFI_SUBSYSTEM=0xa
+	BUILDFLAGS += -ffreestanding -I$(shell $(CC) -print-file-name=include)
+endif
+
+ifeq ($(ARCH),arm)
+	FORMAT = -O binary
+	CCLDFLAGS += -Wl,--defsym=EFI_SUBSYSTEM=0xa
+	BUILDFLAGS += -ffreestanding -I$(shell $(CC) -print-file-name=include)
+endif
 
 all : pesign-test-app.efi
 
 %.efi : %.so
-	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym -j .rel \
-		   -j .rela -j .reloc --target=efi-app-$(ARCH) $^ $@
+ifneq ($(OBJCOPY_GTE224),1)
+	$(error objcopy >= 2.24 is required)
+endif
+	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym \
+		   -j .rel* -j .rela* -j .reloc -j .eh_frame \
+		   $(FORMAT) $^ $@
 
 %.so : %.o
-	$(LD) $(LDFLAGS) -o $@ $^ -lefi -lgnuefi
+	$(CC) $(CCLDFLAGS) -o $@ $^ -lefi -lgnuefi \
+		$(shell $(CC) -print-libgcc-file-name) \
+		-T $(GNUEFIDIR)/elf_$(ARCH)_efi.lds
 
 %.o : %.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) $(BUILDFLAGS) -c -o $@ $^
 
 clean :
 	@rm -vf *.o *.so *.efi
