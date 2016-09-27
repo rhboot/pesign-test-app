@@ -17,7 +17,7 @@ CCLDFLAGS       ?= -nostdlib -Wl,--warn-common \
         $(GNUEFIDIR)/crt0-efi-$(ARCH).o
 LD = ld
 OBJCOPY = objcopy
-OBJCOPY_GTE224 = $(shell expr `$(OBJCOPY) --version |grep ^"GNU objcopy" | sed 's/^.* //g' | cut -f1-2 -d.` \>= 2.24)
+OBJCOPY_GTE224  = $(shell expr `$(OBJCOPY) --version |grep ^"GNU objcopy" | sed 's/^.*\((.*)\|version\) //g' | cut -f1-2 -d.` \>= 2.24)
 
 ifeq ($(ARCH),x86_64)
 	FORMAT = --target efi-app-$(ARCH)
