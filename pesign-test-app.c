@@ -24,7 +24,10 @@
 #include <efilib.h>
 
 EFI_STATUS
-efi_main(EFI_HANDLE image_handle, EFI_SYSTEM_TABLE *systab)
+efi_main
+
+	(EFI_HANDLE image_handle __attribute__((__unused__)),
+	 EFI_SYSTEM_TABLE *systab __attribute__((__unused__)))
 {
 	InitializeLib(image_handle, systab);
 
